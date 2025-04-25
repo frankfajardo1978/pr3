@@ -9,11 +9,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout
+    - name: Checkout completo del repo
       uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  # ✅ Trae todo el historial, necesario para ver origin/main
 
-    - name: Obtener mensajes de commit
+    - name: Obtener mensajes de commit del PR
       run: |
+        git fetch origin main  # ✅ Asegura que origin/main exista
         git log --pretty=format:"%s" origin/main..HEAD > commits.txt
 
     - name: Configurar Python
