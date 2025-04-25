@@ -3,18 +3,22 @@ import os
 import sys
 import subprocess
 
-# Setear la API key directamente
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# Configurar cliente OpenAI con el nuevo SDK (v1.x)
+client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def main():
     try:
         with open("commits.txt", "r", encoding="utf-8") as f:
             commits = f.read()
 
+        if not commits.strip():
+            print("ℹ️ No hay commits nuevos para revisar.")
+            return
+
         print("🔍 Enviando commits a OpenAI...\n")
 
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",  # usa gpt-4 si tenés acceso
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
             messages=[
                 {
                     "role": "system",
@@ -27,16 +31,14 @@ def main():
             ]
         )
 
-        revision = response.choices[0].message["content"]
+        revision = response.choices[0].message.content
 
         print("🧠 Sugerencias de revisión:\n")
         print(revision)
 
-        # Guardar resultado en archivo
         with open("revision.txt", "w", encoding="utf-8") as out:
             out.write(revision)
 
-        # Obtener URL del PR
         os.environ["PR_URL"] = subprocess.check_output(["gh", "pr", "view", "--json", "url", "-q", ".url"]).decode().strip()
 
     except Exception as e:
