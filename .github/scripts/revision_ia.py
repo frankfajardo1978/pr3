@@ -38,7 +38,7 @@ def analizar_con_gemini(commits):
         "nombres de variables, claridad, si hay código duplicado o errores comunes.\n\n"
         f"Commits:\n{chr(10).join(commits)}"
     )
-    model = genai.GenerativeModel("gemini-pro")
+    model = genai.GenerativeModel("models/chat-bison-001")
     response = model.generate_content(prompt)
     return response.text
 
