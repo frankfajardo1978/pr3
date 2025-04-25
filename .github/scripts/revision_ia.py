@@ -1,53 +1,39 @@
+# .github/scripts/revision_ia.py
+
+import openai
 import os
-import requests
-import google.generativeai as genai
+import sys
 
-genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
-def get_commits_from_github():
-    repo = os.environ["GITHUB_REPOSITORY"]
-    pr_number = os.environ["PR_NUMBER"]
-    token = os.environ["GITHUB_TOKEN"]
+def main():
+    try:
+        with open("commits.txt", "r", encoding="utf-8") as f:
+            commits = f.read()
+        
+        print("🔍 Enviando commits a OpenAI...\n")
+        
+        response = openai.ChatCompletion.create(
+            model="gpt-4",  # o "gpt-3.5-turbo"
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Sos un revisor de código. Dado un resumen de cambios de un PR, comentá si hay algo que mejorar o si está todo bien."
+                },
+                {
+                    "role": "user",
+                    "content": f"Estos son los mensajes de commit:\n\n{commits}"
+                }
+            ]
+        )
 
-    url = f"https://api.github.com/repos/{repo}/pulls/{pr_number}/commits"
-    headers = {"Authorization": f"token {token}"}
-    response = requests.get(url, headers=headers)
-    response.raise_for_status()
-    commits = response.json()
-    return [commit["commit"]["message"] for commit in commits]
+        print("🧠 Sugerencias de revisión:\n")
+        print(response.choices[0].message["content"])
+    
+    except Exception as e:
+        print("❌ Error durante la revisión:", e)
+        sys.exit(1)
 
-def comentar_en_pr(mensaje):
-    repo = os.environ["GITHUB_REPOSITORY"]
-    pr_number = os.environ["PR_NUMBER"]
-    token = os.environ["GITHUB_TOKEN"]
-
-    url = f"https://api.github.com/repos/{repo}/issues/{pr_number}/comments"
-    headers = {
-        "Authorization": f"token {token}",
-        "Accept": "application/vnd.github+json"
-    }
-    data = {"body": mensaje}
-    requests.post(url, headers=headers, json=data)
-
-def analizar_con_gemini(commits):
-    prompt = (
-        "Sos un revisor técnico. A continuación te paso mensajes de commits "
-        "de un Pull Request. Hacé una revisión técnica de buenas prácticas, claridad, "
-        "posibles problemas o mejoras.\n\n"
-        f"Commits:\n{chr(10).join(commits)}"
-    )
-    model = genai.GenerativeModel("gemini-pro")
-    response = model.generate_content(prompt)
-    return response.text
-
-# Ejecución principal
-try:
-    commits = get_commits_from_github()
-    revision = analizar_con_gemini(commits)
-    comentar_en_pr("🤖 **Revisión automática con Gemini**\n\n" + revision)
-except Exception as e:
-    print("Error durante la revisión:", e)
-    exit(1)
-
-
+if __name__ == "__main__":
+    main()
 
