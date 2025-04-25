@@ -1,8 +1,8 @@
 name: Revisar PR con IA
 
 on:
-  pull_request_target:
-    types: [opened, synchronize, reopened]
+  pull_request:
+    types: [opened, synchronize, reopened]  # Cambiar a pull_request en lugar de pull_request_target
 
 jobs:
   revisar_pr:
@@ -48,4 +48,3 @@ jobs:
         else
           gh pr comment "$pr_url" --repo "$REPO" --body "⚠️ No se pudo generar la revisión automática (posible error de cuota o de API)."
         fi
-
