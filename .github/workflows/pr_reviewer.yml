@@ -1,7 +1,7 @@
 name: Revisar PR con IA
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize, reopened]
 
 jobs:
@@ -18,7 +18,8 @@ jobs:
       run: git fetch origin main
 
     - name: Obtener mensajes de commit del PR
-      run: git log --pretty=format:"%s" origin/main..HEAD > commits.txt
+      run: |
+        git log --pretty=format:"%s" origin/main..HEAD > commits.txt || echo "⚠️ No se pudo obtener commits" > commits.txt
 
     - name: Configurar Python
       uses: actions/setup-python@v4
@@ -36,7 +37,6 @@ jobs:
       run: python .github/scripts/revision_ia.py
 
     - name: Comentar en el PR con el resultado de la IA
-      if: always()
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
