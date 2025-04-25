@@ -3,7 +3,7 @@ import os
 import sys
 import subprocess
 
-# Configurar el cliente OpenAI con el nuevo SDK (v1.x)
+# Configurar cliente con OpenAI SDK v1.x
 client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def main():
@@ -13,14 +13,12 @@ def main():
 
         if not commits.strip():
             print("ℹ️ No hay commits nuevos para revisar.")
-            with open("revision.txt", "w", encoding="utf-8") as out:
-                out.write("ℹ️ No hay commits nuevos para revisar.")
             return
 
         print("🔍 Enviando commits a OpenAI (gpt-3.5-turbo)...\n")
 
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",  # ✅ Usamos el modelo gratuito
+            model="gpt-3.5-turbo",
             messages=[
                 {
                     "role": "system",
@@ -38,12 +36,12 @@ def main():
         print("🧠 Sugerencias de revisión:\n")
         print(revision)
 
-        # Guardar la revisión en un archivo
         with open("revision.txt", "w", encoding="utf-8") as out:
             out.write(revision)
 
-        # Obtener la URL del PR
-        os.environ["PR_URL"] = subprocess.check_output(["gh", "pr", "view", "--json", "url", "-q", ".url"]).decode().strip()
+        # Obtener URL del PR
+        pr_url = subprocess.check_output(["gh", "pr", "view", "--json", "url", "-q", ".url"]).decode().strip()
+        os.environ["PR_URL"] = pr_url
 
     except openai.RateLimitError:
         print("⚠️ Superaste el límite de uso de la API de OpenAI.")
@@ -53,8 +51,9 @@ def main():
     except Exception as e:
         print("❌ Error durante la revisión:", e)
         with open("revision.txt", "w", encoding="utf-8") as out:
-            out.write(f"❌ Error durante la revisión automática:\n{e}")
-        sys.exit(1)
+            out.write(f"❌ Error durante la revisión automática: {e}")
+        # Evitar que falle el pipeline, pero podés descomentar si querés que corte
+        # sys.exit(1)
 
 if __name__ == "__main__":
     main()
