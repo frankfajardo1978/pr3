@@ -1,6 +1,7 @@
 import openai
 import os
 import sys
+import subprocess
 
 # Setear la API key directamente
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -13,7 +14,7 @@ def main():
         print("🔍 Enviando commits a OpenAI...\n")
 
         response = openai.ChatCompletion.create(
-            model="gpt-4",  # o usa gpt-3.5-turbo si no tenés acceso al 4 acá
+            model="gpt-3.5-turbo",  # usa gpt-4 si tenés acceso
             messages=[
                 {
                     "role": "system",
@@ -26,8 +27,17 @@ def main():
             ]
         )
 
+        revision = response.choices[0].message["content"]
+
         print("🧠 Sugerencias de revisión:\n")
-        print(response.choices[0].message["content"])
+        print(revision)
+
+        # Guardar resultado en archivo
+        with open("revision.txt", "w", encoding="utf-8") as out:
+            out.write(revision)
+
+        # Obtener URL del PR
+        os.environ["PR_URL"] = subprocess.check_output(["gh", "pr", "view", "--json", "url", "-q", ".url"]).decode().strip()
 
     except Exception as e:
         print("❌ Error durante la revisión:", e)
@@ -35,4 +45,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
