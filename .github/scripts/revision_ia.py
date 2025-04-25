@@ -1,47 +1,53 @@
-import sys
-import json
 import os
+import requests
 import google.generativeai as genai
 
-commits_file = sys.argv[1]
-diff_file = sys.argv[2]
-
-# Leer datos del PR
-with open(commits_file) as f:
-    commits_data = json.load(f)
-
-with open(diff_file) as f:
-    diff_text = f.read()
-
-commit_messages = "\n".join(f"- {c['message']}" for c in commits_data["commits"])
-
-# Inicializar Gemini
+# Configurar Gemini
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-model = genai.GenerativeModel("gemini-pro")
 
-prompt = f"""
-Quiero que actúes como revisor de código en un pull request de GitHub.
-A continuación te paso los commits y los cambios propuestos.
+def get_commits_from_github():
+    repo = os.environ["GITHUB_REPOSITORY"]
+    pr_number = os.environ["PR_NUMBER"]
+    token = os.environ["GITHUB_TOKEN"]
 
-Commits:
-{commit_messages}
+    url = f"https://api.github.com/repos/{repo}/pulls/{pr_number}/commits"
+    headers = {"Authorization": f"token {token}"}
+    response = requests.get(url, headers=headers)
+    response.raise_for_status()
+    commits = response.json()
 
-Cambios propuestos:
-{diff_text[:4000]}  # Limita tokens para no pasarte
+    return [commit["commit"]["message"] for commit in commits]
 
-Decime si encontrás errores, cosas poco claras, duplicadas, mejoras posibles o estilo.
-"""
+def comentar_en_pr(mensaje):
+    repo = os.environ["GITHUB_REPOSITORY"]
+    pr_number = os.environ["PR_NUMBER"]
+    token = os.environ["GITHUB_TOKEN"]
 
-response = model.generate_content(prompt)
+    url = f"https://api.github.com/repos/{repo}/issues/{pr_number}/comments"
+    headers = {
+        "Authorization": f"token {token}",
+        "Accept": "application/vnd.github+json"
+    }
+    data = {"body": mensaje}
+    requests.post(url, headers=headers, json=data)
 
-print("Respuesta de Gemini:\n", response.text)
+def analizar_con_gemini(commits):
+    prompt = (
+        "Sos un asistente técnico. A continuación te paso mensajes de commits "
+        "de un Pull Request. Por favor hacé una revisión de buenas prácticas, "
+        "nombres de variables, claridad, si hay código duplicado o errores comunes.\n\n"
+        f"Commits:\n{chr(10).join(commits)}"
+    )
+    model = genai.GenerativeModel("gemini-pro")
+    response = model.generate_content(prompt)
+    return response.text
 
-# Comentar en el PR
-comment = f"🤖 **Revisión automática por Gemini**:\n\n{response.text}"
+# Ejecución principal
+try:
+    commits = get_commits_from_github()
+    revision = analizar_con_gemini(commits)
+    comentar_en_pr("🤖 **Revisión automática por Gemini**\n\n" + revision)
+except Exception as e:
+    print("Error durante la revisión:", e)
+    exit(1)
 
-# Guardar como archivo temporal
-with open("gemini_review.txt", "w") as f:
-    f.write(comment)
-
-# Publicar el comentario en el PR
-os.system(f'gh pr comment {os.environ["GITHUB_REF"].split("/")[-1]} --body-file gemini_review.txt')
