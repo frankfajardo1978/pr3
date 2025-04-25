@@ -38,13 +38,14 @@ jobs:
 
     - name: Comentar en el PR con el resultado de la IA
       env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Usar GH_TOKEN para gh CLI
+        GH_TOKEN: ${{ github.token }}  # Usar el token predeterminado de GitHub Actions
       run: |
         REPO="${{ github.repository }}"
         PR_NUMBER=${{ github.event.pull_request.number }}
         pr_url=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json url -q .url)
         if [ -f revision.txt ]; then
-          gh pr comment "$pr_url" --repo "$REPO" --body "$(cat revision.txt)"  # Eliminar --token
+          gh pr comment "$pr_url" --repo "$REPO" --body "$(cat revision.txt)"
         else
-          gh pr comment "$pr_url" --repo "$REPO" --body "⚠️ No se pudo generar la revisión automática (posible error de cuota o de API)."  # Eliminar --token
+          gh pr comment "$pr_url" --repo "$REPO" --body "⚠️ No se pudo generar la revisión automática (posible error de cuota o de API)."
         fi
+
