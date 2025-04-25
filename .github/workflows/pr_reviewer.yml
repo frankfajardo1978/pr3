@@ -2,7 +2,7 @@ name: Revisar PR con IA
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]  # Cambiar a pull_request en lugar de pull_request_target
+    types: [opened, synchronize, reopened]
 
 jobs:
   revisar_pr:
