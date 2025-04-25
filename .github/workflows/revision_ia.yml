@@ -2,23 +2,18 @@ name: Revision IA de PR
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
 
 jobs:
   revisar_pr:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout del código
         uses: actions/checkout@v3
 
-      - name: Instalar GitHub CLI
-        uses: cli/cli-action@v2
-
-      - name: Obtener commits y diff del PR
-        run: |
-          gh pr view ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --json commits > commits.json
-          gh pr diff ${{ github.event.pull_request.number }} --repo ${{ github.repository }} > pr_diff.txt
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
 
       - name: Instalar dependencias
         run: pip install google-generativeai
@@ -26,4 +21,5 @@ jobs:
       - name: Ejecutar revisión con Gemini
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: python3 .github/scripts/revision_ia.py commits.json pr_diff.txt
+        run: python .github/scripts/revision_ia.py
+  
