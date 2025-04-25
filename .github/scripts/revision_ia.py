@@ -13,7 +13,7 @@ def main():
         print("🔍 Enviando commits a OpenAI...\n")
 
         response = openai.ChatCompletion.create(
-            model="gpt-4",  # o usa gpt-3.5-turbo si no tenés acceso al 4 acá
+            model="gpt-4o",  # o usa gpt-3.5-turbo si no tenés acceso al 4 acá
             messages=[
                 {
                     "role": "system",
