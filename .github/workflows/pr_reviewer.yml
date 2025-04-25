@@ -36,9 +36,13 @@ jobs:
       run: python .github/scripts/revision_ia.py
 
     - name: Comentar en el PR con el resultado de la IA
+      if: always()
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        gh pr comment "$PR_URL" --body "$(<revision.txt)"
-      continue-on-error: true
-
+        pr_url=$(gh pr view --json url -q .url)
+        if [ -f revision.txt ]; then
+          gh pr comment "$pr_url" --body "$(cat revision.txt)"
+        else
+          gh pr comment "$pr_url" --body "⚠️ No se pudo generar la revisión automática (posible error de cuota o de API)."
+        fi
