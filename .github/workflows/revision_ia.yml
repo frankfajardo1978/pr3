@@ -16,10 +16,13 @@ jobs:
           python-version: '3.10'
 
       - name: Instalar dependencias
-        run: pip install google-generativeai
+        run: pip install google-generativeai requests
 
       - name: Ejecutar revisión con Gemini
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: python .github/scripts/revision_ia.py
-  
+
