@@ -2,7 +2,9 @@ import os
 import requests
 import google.generativeai as genai
 
-# Configurar Gemini
+# Forzar API endpoint correcto (v1 en lugar de v1beta)
+os.environ["GOOGLE_API_USE_REST"] = "true"
+
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 
 def get_commits_from_github():
@@ -15,7 +17,6 @@ def get_commits_from_github():
     response = requests.get(url, headers=headers)
     response.raise_for_status()
     commits = response.json()
-
     return [commit["commit"]["message"] for commit in commits]
 
 def comentar_en_pr(mensaje):
@@ -33,9 +34,9 @@ def comentar_en_pr(mensaje):
 
 def analizar_con_gemini(commits):
     prompt = (
-        "Sos un asistente técnico. A continuación te paso mensajes de commits "
-        "de un Pull Request. Por favor hacé una revisión de buenas prácticas, "
-        "nombres de variables, claridad, si hay código duplicado o errores comunes.\n\n"
+        "Sos un revisor técnico. A continuación te paso mensajes de commits "
+        "de un Pull Request. Hacé una revisión técnica de buenas prácticas, claridad, "
+        "posibles problemas o mejoras.\n\n"
         f"Commits:\n{chr(10).join(commits)}"
     )
     model = genai.GenerativeModel("gemini-pro")
@@ -46,8 +47,9 @@ def analizar_con_gemini(commits):
 try:
     commits = get_commits_from_github()
     revision = analizar_con_gemini(commits)
-    comentar_en_pr("🤖 **Revisión automática por Gemini**\n\n" + revision)
+    comentar_en_pr("🤖 **Revisión automática con Gemini**\n\n" + revision)
 except Exception as e:
     print("Error durante la revisión:", e)
     exit(1)
+
 
