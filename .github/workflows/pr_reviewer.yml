@@ -38,14 +38,13 @@ jobs:
 
     - name: Comentar en el PR con el resultado de la IA
       env:
-        PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}  # Usar el PAT almacenado
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Usar GH_TOKEN para gh CLI
       run: |
         REPO="${{ github.repository }}"
         PR_NUMBER=${{ github.event.pull_request.number }}
         pr_url=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json url -q .url)
         if [ -f revision.txt ]; then
-          gh pr comment "$pr_url" --repo "$REPO" --body "$(cat revision.txt)" --token $PERSONAL_ACCESS_TOKEN  # Usar el PAT
+          gh pr comment "$pr_url" --repo "$REPO" --body "$(cat revision.txt)" --token $GH_TOKEN  # Usar GH_TOKEN
         else
-          gh pr comment "$pr_url" --repo "$REPO" --body "⚠️ No se pudo generar la revisión automática (posible error de cuota o de API)." --token $PERSONAL_ACCESS_TOKEN  # Usar el PAT
+          gh pr comment "$pr_url" --repo "$REPO" --body "⚠️ No se pudo generar la revisión automática (posible error de cuota o de API)." --token $GH_TOKEN  # Usar GH_TOKEN
         fi
-
