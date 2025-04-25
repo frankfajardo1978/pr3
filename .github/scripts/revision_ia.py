@@ -41,10 +41,10 @@ def main():
         with open("revision.txt", "w", encoding="utf-8") as out:
             out.write(revision)
 
-    except openai.error.RateLimitError:
+    except openai.error.RateLimitError as e:
         print("⚠️ Superaste el límite de uso de la API de OpenAI.")
         with open("revision.txt", "w", encoding="utf-8") as out:
-            out.write("⚠️ No se pudo completar la revisión: superaste el límite de uso de OpenAI.")
+            out.write(f"⚠️ No se pudo completar la revisión: {e}")
 
     except Exception as e:
         print("❌ Error durante la revisión automática:", e)
