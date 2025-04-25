@@ -3,7 +3,7 @@ import os
 import sys
 import subprocess
 
-# Configurar cliente OpenAI con el nuevo SDK (v1.x)
+# Usar cliente con la API key (OpenAI SDK v1.x)
 client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def main():
@@ -15,10 +15,10 @@ def main():
             print("ℹ️ No hay commits nuevos para revisar.")
             return
 
-        print("🔍 Enviando commits a OpenAI...\n")
+        print("🔍 Enviando commits a OpenAI (gpt-3.5-turbo)...\n")
 
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-3.5-turbo",  # modelo gratuito
             messages=[
                 {
                     "role": "system",
@@ -41,8 +41,16 @@ def main():
 
         os.environ["PR_URL"] = subprocess.check_output(["gh", "pr", "view", "--json", "url", "-q", ".url"]).decode().strip()
 
+    except openai.RateLimitError:
+        print("⚠️ Superaste el límite de uso de la API de OpenAI.")
+        with open("revision.txt", "w", encoding="utf-8") as out:
+            out.write("⚠️ No se pudo completar la revisión: superaste el límite de uso de OpenAI.")
+
     except Exception as e:
         print("❌ Error durante la revisión:", e)
+        with open("revision.txt", "w", encoding="utf-8") as out:
+            out.write(f"❌ Error durante la revisión automática:
+{e}")
         sys.exit(1)
 
 if __name__ == "__main__":
