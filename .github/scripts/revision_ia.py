@@ -1,23 +1,25 @@
-import openai
 import os
+import openai
 import sys
-import subprocess
-
-# Configurar cliente con OpenAI SDK v1.x
-client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def main():
-    try:
-        with open("commits.txt", "r", encoding="utf-8") as f:
-            commits = f.read()
+    openai.api_key = os.getenv("OPENAI_API_KEY")
 
-        if not commits.strip():
+    try:
+        # Leer commits
+        with open("commits.txt", "r", encoding="utf-8") as f:
+            commits = f.read().strip()
+
+        if not commits:
             print("ℹ️ No hay commits nuevos para revisar.")
+            with open("revision.txt", "w", encoding="utf-8") as out:
+                out.write("ℹ️ No hay commits nuevos para revisar.")
             return
 
         print("🔍 Enviando commits a OpenAI (gpt-3.5-turbo)...\n")
 
-        response = client.chat.completions.create(
+        # Llamar al modelo
+        response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
                 {
@@ -31,30 +33,26 @@ def main():
             ]
         )
 
-        revision = response.choices[0].message.content
+        revision = response.choices[0].message.content.strip()
 
         print("🧠 Sugerencias de revisión:\n")
         print(revision)
 
+        # Guardar resultado
         with open("revision.txt", "w", encoding="utf-8") as out:
             out.write(revision)
 
-        # Obtener URL del PR
-        pr_url = subprocess.check_output(["gh", "pr", "view", "--json", "url", "-q", ".url"]).decode().strip()
-        os.environ["PR_URL"] = pr_url
-
-    except openai.RateLimitError:
+    except openai.error.RateLimitError:
         print("⚠️ Superaste el límite de uso de la API de OpenAI.")
         with open("revision.txt", "w", encoding="utf-8") as out:
             out.write("⚠️ No se pudo completar la revisión: superaste el límite de uso de OpenAI.")
 
     except Exception as e:
-        print("❌ Error durante la revisión:", e)
+        print("❌ Error durante la revisión automática:", e)
         with open("revision.txt", "w", encoding="utf-8") as out:
             out.write(f"❌ Error durante la revisión automática: {e}")
-        # Evitar que falle el pipeline, pero podés descomentar si querés que corte
+        # Podés descomentar para que el workflow falle:
         # sys.exit(1)
 
 if __name__ == "__main__":
     main()
-
