@@ -2,18 +2,18 @@ import openai
 import os
 import sys
 
-# Crear cliente OpenAI con API key desde variable de entorno
-client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# Setear la API key directamente
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 def main():
     try:
         with open("commits.txt", "r", encoding="utf-8") as f:
             commits = f.read()
-        
+
         print("🔍 Enviando commits a OpenAI...\n")
 
-        response = client.chat.completions.create(
-            model="gpt-4o",  # ¡Usando el modelo nuevo!
+        response = openai.ChatCompletion.create(
+            model="gpt-4",  # o usa gpt-3.5-turbo si no tenés acceso al 4 acá
             messages=[
                 {
                     "role": "system",
@@ -27,12 +27,13 @@ def main():
         )
 
         print("🧠 Sugerencias de revisión:\n")
-        print(response.choices[0].message.content)
-    
+        print(response.choices[0].message["content"])
+
     except Exception as e:
         print("❌ Error durante la revisión:", e)
         sys.exit(1)
 
 if __name__ == "__main__":
     main()
+
 
