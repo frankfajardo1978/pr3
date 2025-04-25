@@ -1,3 +1,9 @@
+name: Revisar PR con IA
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
 jobs:
   revisar_pr:
     runs-on: ubuntu-latest
@@ -5,6 +11,8 @@ jobs:
     steps:
     - name: Checkout completo del repo
       uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
 
     - name: Asegurar que origin/main está disponible
       run: git fetch origin main
@@ -20,10 +28,26 @@ jobs:
 
     - name: Instalar OpenAI y GitHub CLI
       run: |
-        pip install --upgrade openai
+        pip install 'openai>=1.0.0,<2.0.0'
         sudo apt-get update && sudo apt-get install gh -y
 
     - name: Ejecutar revisión con IA
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       run: python .github/scripts/revision_ia.py
+
+    - name: Verificar contenido de revision.txt
+      run: cat revision.txt
+
+    - name: Comentar en el PR con el resultado de la IA
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        REPO="${{ github.repository }}"
+        PR_NUMBER=${{ github.event.pull_request.number }}
+        pr_url=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json url -q .url)
+        if [ -f revision.txt ]; then
+          gh pr comment "$pr_url" --repo "$REPO" --body "$(cat revision.txt)"
+        else
+          gh pr comment "$pr_url" --repo "$REPO" --body "⚠️ No se pudo generar la revisión automática (posible error de cuota o de API)."
+        fi
