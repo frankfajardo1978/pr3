@@ -36,7 +36,7 @@ def analizar_con_gemini(commits):
         "posibles problemas o mejoras.\n\n"
         f"Commits:\n{chr(10).join(commits)}"
     )
-    model = genai.GenerativeModel("models/text-bison-001")
+    model = genai.GenerativeModel("gemini-pro")
     response = model.generate_content(prompt)
     return response.text
 
