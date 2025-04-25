@@ -2,9 +2,6 @@ import os
 import requests
 import google.generativeai as genai
 
-# Forzar API endpoint correcto (v1 en lugar de v1beta)
-os.environ["GOOGLE_API_USE_REST"] = "true"
-
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 
 def get_commits_from_github():
@@ -39,7 +36,7 @@ def analizar_con_gemini(commits):
         "posibles problemas o mejoras.\n\n"
         f"Commits:\n{chr(10).join(commits)}"
     )
-    model = genai.GenerativeModel("gemini-pro")
+    model = genai.GenerativeModel("models/text-bison-001")
     response = model.generate_content(prompt)
     return response.text
 
@@ -51,5 +48,6 @@ try:
 except Exception as e:
     print("Error durante la revisión:", e)
     exit(1)
+
 
 
