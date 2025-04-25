@@ -1,12 +1,12 @@
 import os
 import openai
 
-# Inicializar cliente con la nueva versión de la API
+# Configurar la clave de API
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 def main():
     try:
-        # Leer commits
+        # Leer los commits
         with open("commits.txt", "r", encoding="utf-8") as f:
             commits = f.read().strip()
 
@@ -39,7 +39,7 @@ def main():
         print("⚠️ Superaste el límite de uso de la API de OpenAI.")
         with open("revision.txt", "w", encoding="utf-8") as out:
             out.write("⚠️ No se pudo completar la revisión: superaste el límite de uso de OpenAI.")
-    
+
     except openai.error.OpenAIError as e:
         print(f"❌ Error durante la revisión automática: {e}")
         with open("revision.txt", "w", encoding="utf-8") as out:
@@ -47,3 +47,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
