@@ -1,7 +1,7 @@
 import os
 import openai
 
-# Inicializar cliente
+# Inicializar cliente con la nueva versión de la API
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 def main():
@@ -47,4 +47,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
