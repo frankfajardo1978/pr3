@@ -1,4 +1,4 @@
-name: Revision IA de PR
+name: Revisión IA de PR
 
 on:
   pull_request:
@@ -6,23 +6,17 @@ on:
 jobs:
   revisar_pr:
     runs-on: ubuntu-latest
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GOOGLE_API_USE_REST: "true"
     steps:
-      - name: Checkout del código
-        uses: actions/checkout@v3
-
-      - name: Configurar Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
+      - uses: actions/checkout@v3
 
       - name: Instalar dependencias
         run: pip install -U google-generativeai requests
 
-      - name: Ejecutar revisión con Gemini
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-        run: python .github/scripts/revision_ia.py
-
+      - name: Ejecutar revisión IA
+        run: |
+          export PR_NUMBER=${{ github.event.pull_request.number }}
+          python .github/scripts/revision_ia.py
