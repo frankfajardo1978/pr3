@@ -38,12 +38,13 @@ jobs:
     - name: Comentar en el PR con el resultado de la IA
       if: always()
       env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        pr_url=$(gh pr view ${{ github.event.pull_request.number }} --json url -q .url)
+        REPO="${{ github.repository }}"
+        PR_NUMBER=${{ github.event.pull_request.number }}
+        pr_url=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json url -q .url)
         if [ -f revision.txt ]; then
-          gh pr comment "$pr_url" --body "$(cat revision.txt)"
+          gh pr comment "$pr_url" --repo "$REPO" --body "$(cat revision.txt)"
         else
-          gh pr comment "$pr_url" --body "⚠️ No se pudo generar la revisión automática (posible error de cuota o de API)."
+          gh pr comment "$pr_url" --repo "$REPO" --body "⚠️ No se pudo generar la revisión automática (posible error de cuota o de API)."
         fi
-
