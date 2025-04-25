@@ -4,10 +4,6 @@ on:
   pull_request_target:
     types: [opened, synchronize, reopened]
 
-permissions:
-  pull-requests: write
-  contents: read
-
 jobs:
   revisar_pr:
     runs-on: ubuntu-latest
@@ -17,13 +13,6 @@ jobs:
       uses: actions/checkout@v3
       with:
         fetch-depth: 0
-
-    - name: Asegurar que origin/main está disponible
-      run: git fetch origin main
-
-    - name: Obtener mensajes de commit del PR
-      run: |
-        git log --pretty=format:"%s" origin/main..HEAD > commits.txt || echo "⚠️ No se pudo obtener commits" > commits.txt
 
     - name: Configurar Python
       uses: actions/setup-python@v4
@@ -35,6 +24,13 @@ jobs:
         pip install 'openai>=1.0.0,<2.0.0'
         sudo apt-get update && sudo apt-get install gh -y
 
+    - name: Obtener mensajes de commit del PR
+      run: |
+        gh pr view ${{ github.event.pull_request.number }} \
+          --repo ${{ github.repository }} \
+          --json commits \
+          -q '.commits[].message' > commits.txt || echo "⚠️ No se pudo obtener commits" > commits.txt
+
     - name: Ejecutar revisión con IA
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -42,7 +38,7 @@ jobs:
 
     - name: Comentar en el PR con el resultado de la IA
       env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         REPO="${{ github.repository }}"
         PR_NUMBER=${{ github.event.pull_request.number }}
