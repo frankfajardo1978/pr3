@@ -1,7 +1,7 @@
 import os
 import openai
 
-# Configurar la clave de API
+# Inicializar cliente de OpenAI
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 def main():
@@ -18,7 +18,7 @@ def main():
 
         print("🔍 Enviando commits a OpenAI (gpt-3.5-turbo)...\n")
 
-        # Llamar al modelo con la nueva API
+        # Llamar a la API de OpenAI (gpt-3.5-turbo) para obtener la revisión
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
@@ -35,11 +35,6 @@ def main():
         with open("revision.txt", "w", encoding="utf-8") as out:
             out.write(revision)
 
-    except openai.error.RateLimitError as e:
-        print("⚠️ Superaste el límite de uso de la API de OpenAI.")
-        with open("revision.txt", "w", encoding="utf-8") as out:
-            out.write("⚠️ No se pudo completar la revisión: superaste el límite de uso de OpenAI.")
-
     except openai.error.OpenAIError as e:
         print(f"❌ Error durante la revisión automática: {e}")
         with open("revision.txt", "w", encoding="utf-8") as out:
@@ -47,4 +42,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
