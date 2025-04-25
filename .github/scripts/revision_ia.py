@@ -1,10 +1,10 @@
 import os
 import openai
-
-# Inicializar cliente
-openai.api_key = os.getenv("OPENAI_API_KEY")
+import sys
 
 def main():
+    openai.api_key = os.getenv("OPENAI_API_KEY")
+
     try:
         # Leer commits
         with open("commits.txt", "r", encoding="utf-8") as f:
@@ -18,7 +18,7 @@ def main():
 
         print("🔍 Enviando commits a OpenAI (gpt-3.5-turbo)...\n")
 
-        # Llamar al modelo con la nueva API
+        # Llamar al modelo
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
@@ -33,23 +33,27 @@ def main():
             ]
         )
 
-        revision = response['choices'][0]['message']['content'].strip()
+        revision = response.choices[0].message.content.strip()
 
         print("🧠 Sugerencias de revisión:\n")
         print(revision)
 
+        # Guardar resultado
         with open("revision.txt", "w", encoding="utf-8") as out:
             out.write(revision)
 
-    except openai.error.RateLimitError as e:
+    except openai.error.RateLimitError:
         print("⚠️ Superaste el límite de uso de la API de OpenAI.")
         with open("revision.txt", "w", encoding="utf-8") as out:
-            out.write(f"⚠️ No se pudo completar la revisión: {e}")
+            out.write("⚠️ No se pudo completar la revisión: superaste el límite de uso de OpenAI.")
 
     except Exception as e:
         print("❌ Error durante la revisión automática:", e)
         with open("revision.txt", "w", encoding="utf-8") as out:
             out.write(f"❌ Error durante la revisión automática: {e}")
+        # Podés descomentar para que el workflow falle:
+        # sys.exit(1)
 
 if __name__ == "__main__":
     main()
+
