@@ -28,7 +28,7 @@ jobs:
 
     - name: Instalar OpenAI y GitHub CLI
       run: |
-        pip install 'openai>=1.0.0'
+        pip install --upgrade openai
         sudo apt-get update && sudo apt-get install gh -y
 
     - name: Ejecutar revisión con IA
@@ -38,7 +38,7 @@ jobs:
 
     - name: Comentar en el PR con el resultado de la IA
       env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Usar el token de GitHub Actions para autenticación
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         REPO="${{ github.repository }}"
         PR_NUMBER=${{ github.event.pull_request.number }}
