@@ -10,6 +10,10 @@ def main():
         with open("commits.txt", "r", encoding="utf-8") as f:
             commits = f.read().strip()
 
+        print(f"DEBUG: contenido de commits.txt ({len(commits)} caracteres):")
+        print(commits)
+        print("--- fin de commits.txt ---")
+
         if not commits:
             print("ℹ️ No hay commits nuevos para revisar.")
             with open("revision.txt", "w", encoding="utf-8") as out:
@@ -56,4 +60,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
