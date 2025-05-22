@@ -6,21 +6,17 @@ def main():
     openai.api_key = os.getenv("OPENAI_API_KEY")
 
     try:
-        # Leer commits sin hacer strip aún para debug
+        # Leer commits
         with open("commits.txt", "r", encoding="utf-8") as f:
-            commits = f.read()
+            commits = f.read().strip()
+
+        # Cambio mínimo: si commits está vacío, enviar texto indicándolo pero seguir con la revisión
+        if not commits:
+            commits = "(No hay mensajes de commit, pero se realiza revisión igualmente)"
 
         print(f"DEBUG: contenido de commits.txt ({len(commits)} caracteres):")
-        print(commits if commits else "<vacío>")
+        print(commits)
         print("--- fin de commits.txt ---")
-
-        commits = commits.strip()
-
-        if not commits:
-            print("ℹ️ No hay commits nuevos para revisar.")
-            with open("revision.txt", "w", encoding="utf-8") as out:
-                out.write("ℹ️ No hay commits nuevos para revisar.")
-            return
 
         print("🔍 Enviando commits a OpenAI (gpt-3.5-turbo)...\n")
 
