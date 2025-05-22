@@ -10,11 +10,13 @@ def main():
         with open("commits.txt", "r", encoding="utf-8") as f:
             commits = f.read().strip()
 
+        # Cambio mínimo: si commits está vacío, enviar texto indicándolo pero seguir con la revisión
         if not commits:
-            print("ℹ️ No hay commits nuevos para revisar.")
-            with open("revision.txt", "w", encoding="utf-8") as out:
-                out.write("ℹ️ No hay commits nuevos para revisar.")
-            return
+            commits = "(No hay mensajes de commit, pero se realiza revisión igualmente)"
+
+        print(f"DEBUG: contenido de commits.txt ({len(commits)} caracteres):")
+        print(commits)
+        print("--- fin de commits.txt ---")
 
         print("🔍 Enviando commits a OpenAI (gpt-3.5-turbo)...\n")
 
@@ -56,4 +58,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
