@@ -23,7 +23,11 @@ jobs:
 
     - name: Obtener mensajes de commit del PR
       run: |
-        git log --pretty=format:"%s" origin/main..HEAD > commits.txt || echo "⚠️ No se pudo obtener commits" > commits.txt
+        git fetch origin ${{ github.event.pull_request.head.ref }}
+        git log --pretty=format:"%s" ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} > commits.txt || echo "⚠️ No se pudo obtener commits" > commits.txt
+
+    - name: Mostrar commits.txt para debug
+      run: cat commits.txt || echo "commits.txt no encontrado o vacío"
 
     - name: Configurar Python
       uses: actions/setup-python@v4
