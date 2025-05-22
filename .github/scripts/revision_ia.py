@@ -6,13 +6,15 @@ def main():
     openai.api_key = os.getenv("OPENAI_API_KEY")
 
     try:
-        # Leer commits
+        # Leer commits sin hacer strip aún para debug
         with open("commits.txt", "r", encoding="utf-8") as f:
-            commits = f.read().strip()
+            commits = f.read()
 
         print(f"DEBUG: contenido de commits.txt ({len(commits)} caracteres):")
-        print(commits)
+        print(commits if commits else "<vacío>")
         print("--- fin de commits.txt ---")
+
+        commits = commits.strip()
 
         if not commits:
             print("ℹ️ No hay commits nuevos para revisar.")
